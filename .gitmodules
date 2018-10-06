@@ -5,11 +5,11 @@
 [submodule "sources/openembedded-core"]
 	path = sources/openembedded-core
 	url = git://github.com/YoeDistro/openembedded-core.git
-	branch = master
+	branch = yoe/mut
 [submodule "sources/meta-openembedded"]
 	path = sources/meta-openembedded
 	url = git://github.com/YoeDistro/meta-openembedded.git
-	branch = master
+	branch = yoe/mut
 [submodule "sources/meta-ti"]
 	path = sources/meta-ti
 	url = git://github.com/YoeDistro/meta-ti.git
