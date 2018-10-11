@@ -214,11 +214,17 @@ fi # if -e ${OE_ENV_FILE}
 # UPDATE_ALL() - Make sure everything is up to date
 ###############################################################################
 yoe_update_all() {
-  git submodule update
+  CWD=`pwd`
+  cd ${OE_BASE}
+  git pull && git submodule sync && git submodule update
+  cd $CWD
 }
 
 yoe_update_all_submodules_to_master() {
+  SAVEDPWD=$PWD
+  cd $OE_BASE
   git submodule foreach "git checkout master && git pull"
+  cd $SAVEDPWD
 }
 
 ###############################################################################
@@ -234,9 +240,11 @@ yoe_clean() {
 # machine is first parameter
 ###############################################################################
 yoe_setup() {
+  SAVEDPWD=$PWD
+  cd $OE_BASE
   git submodule init
   git submodule update
-
+  cd $SAVEDPWD
 }
 
 ###############################################################################
@@ -422,13 +430,19 @@ bitbake() {
 # Machine independent install scripts
 ###############################################################################
 
-yoe_install_sd_image() {
-  IMAGE_NAME=$1
-  SD=$2
+# write a WIC image to media (SD, USB, etc)
+yoe_install_wic_image() {
+  DRIVE=$1
+  IMAGE_NAME=$2
 
-  if [ -z $IMAGE_NAME ] || [ -z $SD ]; then
-    echo "Usage:"
+  if [ ! $DRIVE ] || [ ! $IMAGE_NAME ]; then
+    echo "Usage: yoe_install_wic_image /dev/sdX image_name"
+    echo "Warning, make sure you specify your SD card and not a workstation disk"
+    echo
+    return 1
   fi
 
-  # todo -- needs finished
+  IMAGE=${OE_BASE}/build/tmp/deploy/images/${MACHINE}/${IMAGE_NAME}-${MACHINE}.wic.xz
+
+  xzcat $IMAGE | sudo dd of=$DRIVE bs=4M iflag=fullblock oflag=direct conv=fsync status=progress
 }

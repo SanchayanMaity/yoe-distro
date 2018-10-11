@@ -11,22 +11,23 @@ This distribution does not end at demo images but rather begins there.
 This following is example of building and installing a linux system from
 scratch on a Raspberry PI 3:
 
-* git clone git://github.com/YoeDistro/yoe-distro.git
-* cd yoe-distro
-* . raspberrypi3-64-envsetup.sh
-* yoe_setup
-* bitbake core-image-minimal
-* [insert SD card]
-* lsblk (note sd card device)
-* yoe_partition_sd /dev/sdX
-* yoe_install_sd_boot (install MLO, u-boot, kernel)
-* yoe_install_sd_rootfs_systemd_image
-* [Install SD card in a Raspberry PI and enjoy your new image]
-* yoe_console (fire up a serial console for the machine)
+1. `git clone git://github.com/YoeDistro/yoe-distro.git`
+1. `cd yoe-distro`
+1. `. raspberrypi3-64-envsetup.sh`
+1. `yoe_setup`
+1. `bitbake core-image-minimal`
+1. insert SD card
+1. `lsblk` (note sd card device, and substitute for /dev/sdX below)
+1. `yoe_install_wic_image /dev/sdX core-image-minimal`
+1. optional: [configure console for serial port](docs/raspberrypi.md)
+1. `sudo eject /dev/sdX`
+1. Install SD card in a Raspberry PI and enjoy your new image
+
+[Detailed documentation](docs/README.md)
 
 ## Vision
 
-There are many examples of build systems out there that are based on Yocto.
+There are many Embedded Linux distribution built on top of OpenEmbedded/Yocto.
 There is the Poky reference distribution. Most SOC and SOM vendors provide
 a Yocto variant that supports their products (often put together with repo).
 While these all provide good ways to build demo images, we feel something
@@ -38,13 +39,13 @@ goals:
    tooling where it makes sense. We try to minimize uneeded indirection or abstraction
    unless it really adds value.
 1. **modern**: generate a modern Linux root filesystem using the latest technologies.
-1. **broad platform support**: support a range of common development platforms, system on
+1. **broad platform support**: support a range of single board computers (SBC), system on
    chips (SoC), and system on modules (SOM). You should not have to use a different
-   build system for every SOC/SOM you might choose to use in your products.
+   build system for every SBC/SOC/SOM you might choose to use in your products.
 1. **repeatable**: easy to lock down subprojects (layers) to known versions for
      repeatable builds
 1. **extendable**: simple to modify and add your own custom software, scripts and tooling.
-   The focus is not in hiding or abstracting Yocto functionality, but rather provider simpler
+   The focus is not on hiding or abstracting Yocto functionality, but rather provider simpler
    and clearer ways to use it.
 1. **maintainable**: product lifecycles run for many years, so we need a solution where
    we can build images on a number of different hosts as time marches on. We achieve this
@@ -58,9 +59,14 @@ goals:
 1. **minimal**: Embedded Linux images can quickly become bloated so we support technologies
    like musl libc, opkg package manager, etc. where appropriate.
 
-## Tested Machines
+## Supported Machines
 
 See the \<machine\>-envsetup.sh files for examples of machines we regularly test with.
+
+There is also [machine specific documentation](docs/README.md#machine-documentation)
+available.
+
+Additional machines can be added by including appropriate BSP layers.
 
 ## Using
 
@@ -69,7 +75,7 @@ See the \<machine\>-envsetup.sh files for examples of machines we regularly test
 This is where all the magic happens. In general, this build system
 must be run in a bash shell. To set up the environment, source the following file:
 
-. ./\<machine\>-envsetup.sh
+`. ./\<machine\>-envsetup.sh`
 
 Or, you can export a MACHINE environment variable, and then source envsetup.sh.
 
@@ -92,24 +98,22 @@ to see them.
 
 ### building for another machine
 
-* export MACHINE=[my machine]
-* bitbake [recipe name]
+* `export MACHINE=[my machine]`
+* `bitbake [recipe name]`
 
-### adding a new layer
+### Layer management
 
-* Adding rocko branch of meta-altera layer to layer mix
+Adding rocko branch of meta-altera layer to layer mix:
 
-yoe_add_layer https://github.com/kraj/meta-altera rocko
+`yoe_add_layer https://github.com/kraj/meta-altera rocko`
 
-### removing a new layer
+Remove meta-altera:
 
-* Remove meta-altera
-
-yoe_remove_layer meta-altera
+`yoe_remove_layer meta-altera`
 
 ### customizing settings
 
-conf/local.conf contains settings that are commonly modified such
+`conf/local.conf` contains settings that are commonly modified such
 as parallel build options.
 
 ### starting a local feed server
@@ -118,10 +122,10 @@ Sometimes you want to install packages you build on the target system
 without building and re-installing the entire rootfs. This can be done
 using a feed server.
 
-* Workstation: yoe_feed_server (this starts a feed server on port 4000)
+* Workstation: `yoe_feed_server` (this starts a feed server on port 4000)
 * Target: modify /etc/opkg to http://[your workstation IP]:4000
-* Target: opkg update
-* Target: opkg install [package]
+* Target: `opkg update`
+* Target: `opkg install [package]`
 
 This advantage of a feed server versus scp'ing opkg files to the target
 and installing manually is that dependencies will automatically get installed.
@@ -134,11 +138,11 @@ Assuming you have a recent version of git, you can make use of the branch
 values specified in .gitmodules to update each submodule branch to the
 HEAD of the specified branch:
 
-```git submodule update --remote```
+`git submodule update --remote`
 
 ## License
 
 This build system is licensed under the MIT license which is the
 same license as oe-core, etc. See COPYING.MIT
 
-Contributions are welcome: please file issues or open pull requests.
+Contributions are welcome: please open issues or pull requests.
